@@ -9,6 +9,9 @@
     "start": "node src/server.js",
     "test": "jest"
   },
+  "engines": {
+    "node": ">=18.18.0"
+  },
   "jest": {
     "testEnvironment": "node"
   },

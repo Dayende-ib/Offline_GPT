@@ -152,7 +152,7 @@ class _ChatBubble extends StatelessWidget {
     final isUser = message.role == ChatRole.user;
     final alignment = isUser ? Alignment.centerRight : Alignment.centerLeft;
     final bubbleColor = isUser
-        ? TechPalette.accent.withOpacity(0.16)
+        ? TechPalette.accent.withValues(alpha: 0.16)
         : TechPalette.surfaceStrong;
     final borderColor = isUser ? TechPalette.accent : TechPalette.outline;
 
@@ -167,7 +167,7 @@ class _ChatBubble extends StatelessWidget {
         decoration: BoxDecoration(
           color: bubbleColor,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: borderColor.withOpacity(0.8)),
+          border: Border.all(color: borderColor.withValues(alpha: 0.8)),
         ),
         child: Text(
           message.content,

@@ -129,7 +129,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 contentPadding: EdgeInsets.zero,
                                 title: const Text('Contexte persistant'),
                                 value: settingsState.settings.contextEnabled,
-                                activeColor: TechPalette.accent,
+                                activeThumbColor: TechPalette.accent,
                                 onChanged: (value) {
                                   _updateSettings(
                                     settingsState.settings.copyWith(
@@ -159,9 +159,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ),
                         onPressed: () async {
                           await ref.read(authControllerProvider.notifier).logout();
-                          if (mounted) {
-                            context.go('/chat');
+                          if (!mounted) {
+                            return;
                           }
+                          context.go('/chat');
                         },
                         icon: const Icon(Icons.logout),
                         label: const Text('Se deconnecter'),

@@ -232,7 +232,7 @@ class _AuthCard extends StatelessWidget {
             filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
             child: Container(
               decoration: BoxDecoration(
-                color: TechPalette.surfaceStrong.withOpacity(0.92),
+                color: TechPalette.surfaceStrong.withValues(alpha: 0.92),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: TechPalette.outline),
               ),
@@ -309,7 +309,7 @@ class _LoginForm extends StatelessWidget {
                     key: ValueKey(errorMessage),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: TechPalette.error.withOpacity(0.1),
+                      color: TechPalette.error.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: TechPalette.error),
                     ),
@@ -394,7 +394,7 @@ class _RegisterForm extends StatelessWidget {
                     key: ValueKey(errorMessage),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: TechPalette.error.withOpacity(0.1),
+                      color: TechPalette.error.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: TechPalette.error),
                     ),

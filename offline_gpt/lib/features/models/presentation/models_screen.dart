@@ -172,8 +172,8 @@ class _StatusPill extends StatelessWidget {
         label = 'Telechargement';
         break;
       case ModelStatus.notInstalled:
-      default:
         label = 'Non installe';
+        break;
     }
 
     return Container(
