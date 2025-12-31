@@ -18,6 +18,7 @@ const config = {
   accessTokenTtl: process.env.ACCESS_TOKEN_TTL || '15m',
   refreshTokenTtl: process.env.REFRESH_TOKEN_TTL || '30d',
   corsOrigin: process.env.CORS_ORIGIN || '*',
+  modelUpsertSecret: process.env.MODEL_UPSERT_SECRET,
 };
 
 const requireConfig = () => {

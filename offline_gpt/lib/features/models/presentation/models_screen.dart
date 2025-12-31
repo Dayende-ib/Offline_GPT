@@ -90,6 +90,20 @@ class _ModelCard extends ConsumerWidget {
                       style: TextStyle(color: TechPalette.background),
                     ),
                   ),
+                if (model.info.id == 'ultra-lite')
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: TechPalette.surface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: TechPalette.accent),
+                    ),
+                    child: const Text(
+                      'Ultra lite',
+                      style: TextStyle(color: TechPalette.accent),
+                    ),
+                  ),
               ],
             ),
             const SizedBox(height: 8),

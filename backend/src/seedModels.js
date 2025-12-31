@@ -2,40 +2,59 @@ const Model = require('./models/Model');
 
 const defaultModels = [
   {
+    modelId: 'ultra-lite',
+    name: 'TinyLlama 1.1B Chat v1.0 (Q4_K_M)',
+    sizeMB: 670,
+    description: 'Modele ultra leger pour telephones 2-4 GB RAM.',
+    recommendedFor: ['mobile', '2-4 GB RAM', 'chat rapide'],
+    sha256: 'pending',
+    downloadUrl:
+      'https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf',
+  },
+  {
     modelId: 'lite',
-    name: 'Lite',
-    sizeMB: 850,
-    description: 'Modele compact pour usage rapide et mobile.',
-    recommendedFor: ['chat rapide', 'essais locaux'],
-    sha256: '2b98e28eeb095426e7124d16cca167e3af5ac4537fdf56f621b7475e532f0ee0',
-    downloadUrl: 'https://example.com/models/offlinegpt-lite.bin',
+    name: 'Phi-3 Mini Instruct (Q4_K_M)',
+    sizeMB: 900,
+    description: 'Modele leger et rapide pour appareils 2-4 GB RAM.',
+    recommendedFor: ['mobile', '2-4 GB RAM', 'chat rapide'],
+    sha256: 'pending',
+    downloadUrl:
+      'https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4_k_m.gguf',
   },
   {
     modelId: 'standard',
-    name: 'Standard',
+    name: 'Qwen 2.5 3B Instruct (Q4_K_M)',
     sizeMB: 2100,
-    description: 'Bon compromis entre qualite et taille.',
-    recommendedFor: ['assistant generaliste'],
-    sha256: '99b231ad8ba546c76b568d9b35c4447655eb7d9e06f8957e2af499d5a345cd6f',
-    downloadUrl: 'https://example.com/models/offlinegpt-standard.bin',
+    description: 'Modele equilibre et multilingue.',
+    recommendedFor: ['assistant generaliste', 'multilingue'],
+    sha256: 'pending',
+    downloadUrl:
+      'https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q4_k_m.gguf',
   },
   {
     modelId: 'pro',
-    name: 'Pro',
-    sizeMB: 4600,
-    description: 'Modele complet pour taches exigeantes.',
-    recommendedFor: ['long contexte', 'redaction complexe'],
-    sha256: '0c932075053e6ab3f5cbcd78c3ed8533ffe2525ac68b966a9c5671c6bff617de',
-    downloadUrl: 'https://example.com/models/offlinegpt-pro.bin',
+    name: 'Llama 3.2 3B Instruct (Q4_K_M)',
+    sizeMB: 2700,
+    description: 'Modele qualitatif pour reponses detaillees.',
+    recommendedFor: ['redaction longue', 'qualite'],
+    sha256: 'pending',
+    downloadUrl:
+      'https://huggingface.co/hugging-quants/Llama-3.2-3B-Instruct-Q4_K_M-GGUF/resolve/main/llama-3.2-3b-instruct-q4_k_m.gguf',
   },
 ];
 
 const seedModels = async () => {
-  const count = await Model.countDocuments();
-  if (count > 0) {
-    return;
+  const operations = defaultModels.map((model) => ({
+    updateOne: {
+      filter: { modelId: model.modelId },
+      update: { $set: model },
+      upsert: true,
+    },
+  }));
+
+  if (operations.length > 0) {
+    await Model.bulkWrite(operations);
   }
-  await Model.insertMany(defaultModels);
 };
 
 module.exports = {

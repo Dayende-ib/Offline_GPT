@@ -1,24 +1,32 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import '../../../core/network/http_client.dart';
 import '../data/model_repository.dart';
 import '../domain/model_installation.dart';
+import '../domain/model_info.dart';
 import 'models_state.dart';
 
 final modelsControllerProvider =
     StateNotifierProvider<ModelsController, ModelsState>((ref) {
-  return ModelsController(ref.watch(modelRepositoryProvider));
+  return ModelsController(
+    ref.watch(modelRepositoryProvider),
+    ref.watch(plainDioProvider),
+  );
 });
 
 class ModelsController extends StateNotifier<ModelsState> {
-  ModelsController(this._repository) : super(ModelsState.initial()) {
+  ModelsController(this._repository, this._dio) : super(ModelsState.initial()) {
     Future.microtask(loadModels);
   }
 
   final ModelRepository _repository;
+  final Dio _dio;
   Future<void> loadModels() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
@@ -57,32 +65,33 @@ class ModelsController extends StateNotifier<ModelsState> {
   }
 
   Future<void> downloadModel(ModelItem item) async {
-    final index = state.models.indexWhere((model) => model.info.id == item.info.id);
+    final index =
+        state.models.indexWhere((model) => model.info.id == item.info.id);
     if (index < 0) {
       return;
     }
 
     state = state.copyWith(errorMessage: null);
-    _updateModel(index, item.copyWith(status: ModelStatus.downloading, progress: 0));
-
-    for (var step = 1; step <= 10; step++) {
-      await Future.delayed(const Duration(milliseconds: 200));
-      _updateModel(
-        index,
-        state.models[index].copyWith(
-          progress: step / 10,
-          status: ModelStatus.downloading,
-        ),
-      );
-    }
+    _updateModel(
+      index,
+      item.copyWith(status: ModelStatus.downloading, progress: 0),
+    );
 
     try {
-      final localPath = await _writeMockModelFile(item.info.id);
-      final shaMatches = await _verifySha(localPath, item.info.sha256);
-      if (!shaMatches) {
-        _updateModel(index, item.copyWith(status: ModelStatus.notInstalled));
-        state = state.copyWith(errorMessage: 'Verification SHA256 impossible');
-        return;
+      if (item.info.downloadUrl.isEmpty) {
+        throw Exception('URL manquante');
+      }
+
+      final localPath = await _downloadModelFile(item.info);
+      final expectedSha = item.info.sha256.trim();
+      if (_isValidSha(expectedSha)) {
+        final digest = await _sha256File(File(localPath));
+        if (digest.toLowerCase() != expectedSha.toLowerCase()) {
+          await File(localPath).delete().catchError((_) {});
+          _updateModel(index, item.copyWith(status: ModelStatus.notInstalled));
+          state = state.copyWith(errorMessage: 'SHA256 invalide');
+          return;
+        }
       }
 
       await _repository.saveInstalledModel(
@@ -129,19 +138,63 @@ class ModelsController extends StateNotifier<ModelsState> {
     state = state.copyWith(models: models);
   }
 
-  Future<String> _writeMockModelFile(String modelId) async {
+  Future<String> _downloadModelFile(ModelInfo info) async {
     final directory = await getApplicationDocumentsDirectory();
-    final filePath = path.join(directory.path, 'models', '$modelId.bin');
+    final fileName = _resolveFileName(info);
+    final filePath = path.join(directory.path, 'models', fileName);
     final file = File(filePath);
     await file.parent.create(recursive: true);
-    await file.writeAsString('offlinegpt-model-$modelId-v1');
+
+    await _dio.download(
+      info.downloadUrl,
+      file.path,
+      deleteOnError: true,
+      onReceiveProgress: (received, total) {
+        if (total <= 0) {
+          return;
+        }
+        final progress = received / total;
+        _updateProgress(info.id, progress);
+      },
+    );
+
     return file.path;
   }
 
-  Future<bool> _verifySha(String filePath, String expectedSha) async {
-    final file = File(filePath);
-    final digest = sha256.convert(await file.readAsBytes()).toString();
-    return digest == expectedSha;
+  void _updateProgress(String modelId, double progress) {
+    final index = state.models.indexWhere((model) => model.info.id == modelId);
+    if (index < 0) {
+      return;
+    }
+    final model = state.models[index];
+    _updateModel(
+      index,
+      model.copyWith(status: ModelStatus.downloading, progress: progress),
+    );
   }
 
+  String _resolveFileName(ModelInfo info) {
+    final uri = Uri.tryParse(info.downloadUrl);
+    final nameFromUrl = uri == null ? '' : path.basename(uri.path);
+    if (nameFromUrl.isNotEmpty) {
+      return nameFromUrl;
+    }
+    return '${info.id}.gguf';
+  }
+
+  bool _isValidSha(String value) {
+    final normalized = value.toLowerCase();
+    final shaRegex = RegExp(r'^[a-f0-9]{64}$');
+    return shaRegex.hasMatch(normalized);
+  }
+
+  Future<String> _sha256File(File file) async {
+    final output = AccumulatorSink<Digest>();
+    final input = sha256.startChunkedConversion(output);
+    await for (final chunk in file.openRead()) {
+      input.add(chunk);
+    }
+    input.close();
+    return output.events.single.toString();
+  }
 }
