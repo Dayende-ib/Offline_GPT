@@ -11,8 +11,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http: ^1.2.1
-  provider: ^6.1.2
+  flutter_riverpod: ^2.5.1
+  go_router: ^13.2.0
+  dio: ^5.4.2
+  flutter_secure_storage: ^9.2.2
+  sqflite: ^2.3.3
+  path: ^1.9.0
+  path_provider: ^2.1.3
+  shared_preferences: ^2.2.3
+  crypto: ^3.0.3
   cupertino_icons: ^1.0.8
 
 dev_dependencies:
