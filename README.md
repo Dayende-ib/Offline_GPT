@@ -9,7 +9,7 @@ See `offline_gpt/README.md` for full setup and run instructions.
 
 ## Railway deployment (backend)
 
-This repo includes a `railway.json` that installs and runs the backend from `backend/`.
+Set the Railway root directory to `backend/`. The backend has its own `railway.json`.
 
 Required Railway variables:
 - `MONGODB_URI`
